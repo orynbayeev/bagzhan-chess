@@ -96,7 +96,7 @@ main{padding:18px clamp(10px,2vw,28px);display:grid;grid-template-columns:minmax
 aside.panel{background:var(--panel);border-radius:20px;box-shadow:0 10px 40px rgba(29,29,31,.06);display:flex;flex-direction:column;max-height:calc(100vh - 36px);position:sticky;top:18px;overflow:hidden}
 .ph{padding:16px 18px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--line);font-weight:700;font-size:19px;letter-spacing:-.03em}
 .ph svg{width:26px;height:26px}
-.pb{padding:14px 16px;overflow:auto;flex:1}
+.pb{position:relative;padding:14px 16px;overflow:auto;flex:1}
 .pf{padding:12px 16px;border-top:1px solid var(--line);display:flex;gap:8px;flex-wrap:wrap}
 .lbl{font-size:13px;font-weight:600;color:var(--mute);margin:14px 0 8px}
 .lbl:first-child{margin-top:0}
@@ -117,11 +117,11 @@ aside.panel{background:var(--panel);border-radius:20px;box-shadow:0 10px 40px rg
 .btn:hover{background:#E8E8ED}
 .btn.g{background:var(--grad);color:#fff}
 .btn svg{width:18px;height:18px}
-.moves{display:grid;grid-template-columns:42px 1fr 1fr;font-size:14px;font-weight:600}
+.moves{position:relative;display:grid;grid-template-columns:42px 1fr 1fr;font-size:14px;font-weight:600}
 .moves .n{color:var(--mute);padding:4px 8px}
 .moves .m{padding:4px 8px;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:5px}
 .moves .m:hover{background:#F2F2F5}
-.moves .m.cur{background:#1D1D1F;color:#fff}
+.moves .m.cur{background:#1D1D1F!important;color:#fff}
 .moves .rw:nth-child(6n+1),.moves .rw:nth-child(6n+2),.moves .rw:nth-child(6n+3){background:#FAFAFB}
 .tag{display:inline-grid;place-items:center;width:17px;height:17px;border-radius:50%;font-size:10px;font-weight:800;color:#fff;flex:none}
 .nav{display:flex;gap:6px;padding:10px 16px;border-top:1px solid var(--line)}
@@ -216,7 +216,39 @@ body.pagemode .page{display:block}
  .mobnav .nb{flex:1;flex-direction:column;justify-content:center;font-size:11px;gap:2px;padding:6px 2px;min-height:52px;color:#8E8E93}
  .mobnav .nb.on{background:none;color:var(--acc)}
  .mobnav .nb svg{width:24px;height:24px}
- main{padding-top:max(8px,env(safe-area-inset-top))!important;padding-bottom:calc(84px + env(safe-area-inset-bottom))!important}
+ main{padding-top:max(8px,env(safe-area-inset-top))!important;padding-bottom:calc(72px + env(safe-area-inset-bottom))!important}
+ body::before{content:"";position:fixed;left:0;right:0;top:0;height:env(safe-area-inset-top);background:rgba(245,245,247,.92);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);z-index:60}
+ .boardcol{gap:4px}
+ .pl{min-height:34px;gap:8px;padding:0 2px}
+ .pl .av{width:30px;height:30px;font-size:13px;border-radius:9px}
+ .pn{font-size:13px}.pn small{font-size:11px}
+ .capt{height:14px;font-size:11px}.capt i{width:13px;height:13px;margin-right:-4px}
+ .clock{font-size:17px;min-width:74px;padding:6px 10px;border-radius:9px}
+ .brow{gap:5px}
+ .evalbar{width:12px;border-radius:6px}.evalbar span{font-size:7px}
+ .board{border-radius:10px;box-shadow:0 10px 26px rgba(29,29,31,.12)}
+ aside.panel{border-radius:16px}
+ .ph{padding:9px 14px;font-size:15px;gap:8px}.ph svg{width:20px;height:20px}.ph .av{width:24px!important;height:24px!important;font-size:11px!important;border-radius:7px}
+ .pb{padding:8px 12px}
+ .nav{padding:6px 12px;gap:5px}.nav .btn{min-height:34px;padding:4px}
+ .pf{padding:8px 12px;gap:6px}
+ .btn{min-height:36px;padding:6px 10px;font-size:13px}.btn svg{width:16px;height:16px}
+ .moves{display:flex;flex-wrap:nowrap;overflow-x:auto;gap:2px;align-items:center;font-size:13px;scrollbar-width:none;padding-bottom:2px}
+ .moves::-webkit-scrollbar{display:none}
+ .moves .rw{background:none!important;flex:none}
+ .moves .n{padding:3px 0 3px 6px}.moves .m{padding:3px 7px;white-space:nowrap}
+ .moves .m:empty{display:none}
+ .status{padding:7px 10px;margin-bottom:6px;font-size:13px;border-radius:10px}
+ .lines{gap:3px;font-size:12px;margin-bottom:6px}.lines div{padding:4px 7px;border-radius:8px}.lines b{min-width:40px}
+ .lbl{margin:8px 0 5px;font-size:12px}
+ .acc{margin-bottom:8px;gap:6px}.acc div{padding:6px;border-radius:10px}.acc div b{font-size:21px}
+ .rev{font-size:12px;gap:2px 10px}
+ .big{min-height:46px;font-size:16px;padding:11px;margin-top:10px}
+ .seg button{min-height:36px;padding:6px 10px;font-size:13px}
+ .bot{min-height:58px;border-radius:11px}.bot .av{width:28px!important;height:28px!important;font-size:12px!important}
+ .botinfo{padding:7px;margin-top:6px}.botinfo .av{width:40px;height:40px;font-size:17px}.botinfo p{font-size:12px}
+ details summary{font-size:13px}
+ .hint{font-size:12px}
  main{grid-template-columns:minmax(0,1fr);padding:8px 6px 24px;gap:10px}
  .boardcol{width:100%;min-width:0;max-width:600px;margin:0 auto}
  aside.panel{position:static;max-height:none}
@@ -402,6 +434,7 @@ function playerHTML(p,col,mat,clock,clockRun,thinking){const caps=mat.capBy[col]
  return `<div class="av" style="background:${p.color}">${esc(p.ini)}</div><div><div class="pn">${esc(p.name)}${p.rating?`<small>(${esc(p.rating)})</small>`:''} <span class="think ${thinking?'on':''}">думает…</span></div><div class="capt">${caps}${adv>0?`<b>+${adv}</b>`:''}</div></div>${clock}`}
 function fmtClock(ms){if(ms<0)ms=0;const s=ms/1000;if(s<10)return `0:0${s.toFixed(1)}`;const m=Math.floor(s/60),ss=Math.floor(s%60);return m+':'+String(ss).padStart(2,'0')}
 function sndFor(m,chess){if(chess.inCheck())beep('check');else if(m.captured)beep('capture');else beep('move')}
+function scrollIn(el){const p=el.closest('.moves');if(p&&p.scrollWidth>p.clientWidth){p.scrollLeft=el.offsetLeft-p.clientWidth/2;return}const b=el.closest('.pb');if(b)b.scrollTop=el.offsetTop-b.clientHeight/2}
 function modal(html){const m=$('#modal');$('#mcard').innerHTML=html;m.classList.add('on');m.onclick=e=>{if(e.target===m||e.target.closest('[data-close]'))m.classList.remove('on')}}
 const closeModal=()=>$('#modal').classList.remove('on');
 function copy(t){try{navigator.clipboard.writeText(t).then(()=>toast('Скопировано'),()=>toast('Не удалось скопировать'))}catch(e){toast('Не удалось скопировать')}}
@@ -484,7 +517,7 @@ const Play={
   for(let i=0;i<h.length;i+=2){s+=`<div class="n rw">${i/2+1}.</div><div class="m rw ${curI===i+1?'cur':''}" data-i="${i+1}">${esc(h[i])}</div><div class="m rw ${curI===i+2?'cur':''}" data-i="${i+2}">${h[i+1]?esc(h[i+1]):''}</div>`}
   el.innerHTML=s||'<div style="grid-column:1/-1;color:var(--mute);padding:8px 0">Сделайте первый ход.</div>';
   el.onclick=e=>{const m=e.target.closest('[data-i]');if(m&&m.textContent){const i=+m.dataset.i;this.showAt(i>=h.length?-1:i)}};
-  const box=$('#mvbox');const c=el.querySelector('.cur');if(c&&g.view>=0)c.scrollIntoView({block:'nearest'});else box.scrollTop=box.scrollHeight;
+  const box=$('#mvbox');const c=el.querySelector('.cur');if(c&&g.view>=0)scrollIn(c);else{box.scrollTop=box.scrollHeight;el.scrollLeft=el.scrollWidth}
   const st=$('#gstat');if(st)st.innerHTML=g.over?`<div class="status" style="margin-top:12px">${esc(g.over.text)}</div>`:''},
  showAt(i){const g=this.g;g.view=i;const c=this.viewChess();const hv=c.history({verbose:true}).at(-1);board.interactive=i<0;board.set(c.fen(),{last:hv?hv.from+hv.to:null});this.renderMoves();this.renderPlayers()},
  nav(d){const g=this.g;const n=g.chess.history().length;let i=g.view<0?n:g.view;i=d==='first'?0:d==='prev'?Math.max(0,i-1):d==='next'?Math.min(n,i+1):n;this.showAt(i>=n?-1:i)},
@@ -634,8 +667,8 @@ const Analysis={
   $('#panel').innerHTML=`<div class="ph">${IC.star.replace('<svg','<svg style="color:var(--acc)"')} Анализ <span style="margin-left:auto;font-size:12px;color:var(--mute);font-weight:600" id="adepth"></span></div>
    <div class="pb" id="abox"><div class="lines" id="alines"></div>
    ${curCl?`<div class="status"><span class="tag" style="background:${C[curCl].c};width:22px;height:22px;font-size:12px">${C[curCl].i}</span>${esc(h[this.i-1])} — ${C[curCl].n.toLowerCase()}${bestPrev?`<span style="margin-left:auto;font-weight:600;font-size:13px;color:var(--mute)">лучше ${esc(pvToSan(this.chessAt(this.i-1).fen(),[bestPrev],1)[0]||'')}</span>`:''}</div>`:''}
-   ${revHtml}
    <div class="lbl">Ходы</div><div class="moves" id="amoves">${s||'<div style="grid-column:1/-1;color:var(--mute);padding:6px 0">Двигайте фигуры за обе стороны — движок покажет оценку.</div>'}</div>
+   ${revHtml}
    <details style="margin-top:14px"><summary style="cursor:pointer;font-weight:700;color:var(--mute)">Загрузить FEN или PGN</summary><textarea id="aIn" placeholder="Вставьте FEN позиции или PGN партии"></textarea><div style="display:flex;gap:8px;margin-top:6px"><button class="btn" id="aLoad">Загрузить</button><button class="btn" id="aReset">Начальная позиция</button></div></details></div>
    <div class="nav"><button class="btn" data-n="first" aria-label="В начало">${IC.first}</button><button class="btn" data-n="prev" aria-label="Назад">${IC.prev}</button><button class="btn" data-n="next" aria-label="Вперёд">${IC.next}</button><button class="btn" data-n="last" aria-label="В конец">${IC.last}</button></div>
    <div class="pf"><button class="btn g" id="aRev">${IC.star} ${rv&&!rv.running?'Повторить разбор':'Разбор партии'}</button><button class="btn" id="aFlip">${IC.flip}</button><button class="btn" id="aPgn">${IC.copy} PGN</button><button class="btn" id="aFen">${IC.copy} FEN</button><button class="btn" id="aPlay">Играть с ботом отсюда</button></div>`;
@@ -646,7 +679,7 @@ const Analysis={
   $('#aPlay').onclick=()=>{const c=this.chessAt(this.i);const t=c.turn();Play.stopTimer();Play.g={orient:t,start:c.fen(),mode:'bot',bot:Play.cfg.bot,user:t,tc:null,clocks:null,chess:new Chess(c.fen()),view:-1,over:null,hints:0,started:true};Play.save();go('play')};
   $('#aReset').onclick=()=>{this.loadFen(new Chess().fen());this.show()};
   $('#aLoad').onclick=()=>{const t=$('#aIn').value.trim();if(!t)return;try{const c=new Chess(t);this.loadFen(c.fen());this.show();toast('Позиция загружена')}catch(e){try{this.loadGame(t,'w',false);this.show();toast('Партия загружена')}catch(e2){toast('Не получилось прочитать FEN/PGN')}}};
-  const box=$('#abox');const curEl=box.querySelector('.m.cur');if(curEl)curEl.scrollIntoView({block:'nearest'});
+  const curEl=$('#abox').querySelector('.m.cur');if(curEl)scrollIn(curEl);
   this.renderLines()},
  leave(){if(_aeng)_aeng.stop();board.setAuto([])}
 };
