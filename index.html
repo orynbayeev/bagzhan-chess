@@ -70,6 +70,11 @@ main{padding:18px clamp(10px,2vw,28px);display:grid;grid-template-columns:minmax
 .pc.anim{transition:transform .16s ease}
 .pc.drag{z-index:20;transition:none;cursor:grabbing;filter:drop-shadow(0 4px 6px rgba(0,0,0,.35))}
 .board svg.arr{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:15}
+.pauseov{position:absolute;inset:0;z-index:40;background:rgba(245,245,247,.78);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);display:none;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center;padding:20px}
+.pauseov.on{display:flex}
+.pauseov b{font-size:clamp(34px,7vw,56px);line-height:.98;letter-spacing:-.045em}
+.pauseov span{color:var(--mute);font-weight:500}
+.pauseov .big{width:auto;padding:14px 34px;margin-top:14px}
 .promo{position:absolute;inset:0;background:rgba(0,0,0,.45);z-index:30;display:none;align-items:center;justify-content:center}
 .promo.on{display:flex}
 .promo div{display:flex;gap:6px;background:#fff;border-radius:16px;padding:6px;box-shadow:0 8px 30px rgba(0,0,0,.5)}
@@ -246,6 +251,7 @@ body.pagemode .page{display:block}
     <div class="board" id="board">
      <div class="sqs" id="sqs"></div><div class="pcs" id="pcs"></div>
      <svg class="arr" id="arr" viewBox="0 0 800 800"><defs><marker id="ah" markerWidth="4" markerHeight="4" refX="2.05" refY="2" orient="auto"><path d="M0 0L4 2L0 4z" fill="context-stroke"/></marker></defs><g id="arrg"></g></svg>
+     <div class="pauseov" id="pauseov"><b>Пауза</b><span>Часы остановлены</span><button class="big" id="resumeBtn">Продолжить</button></div>
      <div class="promo" id="promo"><div id="promoBox"></div></div>
     </div>
    </div>
@@ -281,6 +287,7 @@ const IC={
  last:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M18 5v14M6 6l7 6-7 6"/></svg>',
  copy:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/></svg>',
  star:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.2l1-6.2L3 9.6l6.2-.9z"/></svg>',
+ pause:'<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1.2"/><rect x="14" y="5" width="4" height="14" rx="1.2"/></svg>',
  plus:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M12 5v14M5 12h14"/></svg>'
 };
 
@@ -450,11 +457,11 @@ const Play={
   if(c.mode==='bot'&&color==='b')this.botMove()},
  restore(s){const ch=new Chess(s.start||undefined);s.moves.forEach(m=>ch.move(m));this.g={...s,chess:ch,view:-1,started:s.moves.length>1,orient:s.orient||s.user};board.setOrient(s.orient||s.user);const h=ch.history({verbose:true}).at(-1);board.set(ch.fen(),{last:h?h.from+h.to:null});
   if(this.g.mode==='bot'&&ch.turn()!==this.g.user)setTimeout(()=>this.botMove(),300)},
- save(){const g=this.g;if(!g)return;store.set('game',{start:g.start||null,mode:g.mode,bot:g.bot,user:g.user,tc:g.tc,clocks:g.clocks,moves:g.chess.history(),over:g.over,orient:board.orient})},
+ save(){const g=this.g;if(!g)return;store.set('game',{start:g.start||null,mode:g.mode,bot:g.bot,user:g.user,tc:g.tc,clocks:g.clocks,moves:g.chess.history(),over:g.over,paused:!!g.paused,orient:board.orient})},
  players(){const g=this.g||{mode:this.cfg.mode,user:this.cfg.color==='b'?'b':'w',bot:this.cfg.bot};if(g.mode==='local')return {w:{name:'Белые',ini:'Б',color:'#C7C7CC'},b:{name:'Чёрные',ini:'Ч',color:'#1D1D1F'}};
   const bot=BOTS[g.bot];return g.user==='w'?{w:ME,b:bot}:{w:bot,b:ME}},
  renderPlayers(){if(cur!==this)return;const g=this.g;const P=this.players();const ch=g?this.viewChess():new Chess();const mat=material(ch);const bottom=board.orient,top=bottom==='w'?'b':'w';
-  const run=g&&!g.over&&g.tc&&g.started?g.chess.turn():null;
+  const run=g&&!g.over&&!g.paused&&g.tc&&g.started?g.chess.turn():null;
   const ck=col=>g&&g.tc?`<div class="clock ${run===col?'run':''} ${g.clocks[col]<20000?'low':''}" id="clk${col}">${fmtClock(g.clocks[col])}</div>`:'';
   const th=col=>g&&!g.over&&g.mode==='bot'&&g.chess.turn()===col&&col!==g.user;
   $('#plTop').innerHTML=playerHTML(P[top],top,mat,ck(top),0,th(top));$('#plBot').innerHTML=playerHTML(P[bottom],bottom,mat,ck(bottom),0,th(bottom))},
@@ -465,12 +472,12 @@ const Play={
    <div class="nav"><button class="btn" data-n="first" aria-label="В начало">${IC.first}</button><button class="btn" data-n="prev" aria-label="Назад">${IC.prev}</button><button class="btn" data-n="next" aria-label="Вперёд">${IC.next}</button><button class="btn" data-n="last" aria-label="В конец">${IC.last}</button></div>
    <div class="pf" id="gbtns"></div>`;
   document.querySelector('.nav').onclick=e=>{const b=e.target.closest('button');if(b)this.nav(b.dataset.n)};
-  this.renderButtons();this.renderMoves();this.renderPlayers();this.startTimer()},
+  this.renderButtons();this.renderMoves();this.renderPlayers();this.startTimer();this.syncPause()},
  renderButtons(){const g=this.g;const el=$('#gbtns');if(!el)return;
   el.innerHTML=g.over?`<button class="btn g" id="bRev">${IC.star} Разбор партии</button><button class="btn" id="bNew">${IC.plus} Новая</button><button class="btn" id="bRe">Реванш</button>`:
-   `<button class="btn" id="bFlip" title="Перевернуть">${IC.flip}</button><button class="btn" id="bUndo" title="Вернуть ход">${IC.undo}</button>${g.mode==='bot'?`<button class="btn" id="bHint" title="Подсказка">${IC.bulb}</button>`:''}<button class="btn" id="bDraw" title="Ничья">${IC.half}</button><button class="btn" id="bRes" title="Сдаться">${IC.flag}</button>`;
+   `<button class="btn" id="bPause" title="Пауза">${IC.pause}</button><button class="btn" id="bFlip" title="Перевернуть">${IC.flip}</button><button class="btn" id="bUndo" title="Вернуть ход">${IC.undo}</button>${g.mode==='bot'?`<button class="btn" id="bHint" title="Подсказка">${IC.bulb}</button>`:''}<button class="btn" id="bDraw" title="Ничья">${IC.half}</button><button class="btn" id="bRes" title="Сдаться">${IC.flag}</button>`;
   const on=(id,f)=>{const b=$('#'+id);if(b)b.onclick=f};
-  on('bFlip',()=>{board.setOrient(board.orient==='w'?'b':'w');this.g.orient=board.orient;this.renderPlayers();this.save()});
+  on('bPause',()=>this.pause());on('bFlip',()=>{board.setOrient(board.orient==='w'?'b':'w');this.g.orient=board.orient;this.renderPlayers();this.save()});
   on('bUndo',()=>this.takeback());on('bHint',()=>this.hint());on('bDraw',()=>this.offerDraw());on('bRes',()=>this.confirmResign());
   on('bRev',()=>{closeModal();Analysis.loadGame(g.chess.pgn(),g.user,true);go('analysis')});on('bNew',()=>{closeModal();this.setup()});on('bRe',()=>{closeModal();if(this.cfg.color!=='r'&&g.mode==='bot')this.cfg.color=g.user==='w'?'b':'w';this.start()})},
  renderMoves(){const g=this.g;const el=$('#moves');if(!el)return;const h=g.chess.history();const curI=g.view<0?h.length:g.view;let s='';
@@ -482,7 +489,7 @@ const Play={
  showAt(i){const g=this.g;g.view=i;const c=this.viewChess();const hv=c.history({verbose:true}).at(-1);board.interactive=i<0;board.set(c.fen(),{last:hv?hv.from+hv.to:null});this.renderMoves();this.renderPlayers()},
  nav(d){const g=this.g;const n=g.chess.history().length;let i=g.view<0?n:g.view;i=d==='first'?0:d==='prev'?Math.max(0,i-1):d==='next'?Math.min(n,i+1):n;this.showAt(i>=n?-1:i)},
  dests(sq){const g=this.g;if(!g||g.over||g.view>=0)return [];return legalDests(g.chess,sq)},
- canPick(col){const g=this.g;if(!g)return false;if(g.over||g.view>=0)return false;if(g.mode==='local')return col===g.chess.turn();return col===g.user&&g.chess.turn()===g.user},
+ canPick(col){const g=this.g;if(!g)return false;if(g.over||g.view>=0||g.paused)return false;if(g.mode==='local')return col===g.chess.turn();return col===g.user&&g.chess.turn()===g.user},
  userMove(f,t,p,dragged){const g=this.g;if(!g){toast('Нажмите «Играть», чтобы начать');board.render();return}
   if(!this.canPick(g.chess.turn()))return;this.applyMove({from:f,to:t,promotion:p},!dragged);
   if(!g.over&&g.mode==='bot')this.botMove()},
@@ -498,6 +505,7 @@ const Play={
   if(bot.rand&&Math.random()<bot.rand){const ms=g.chess.moves({verbose:true});const caps=ms.filter(x=>x.captured);const pool=caps.length&&Math.random()<.5?caps:ms;const r=pool[Math.floor(Math.random()*pool.length)];mv=r.from+r.to+(r.promotion||'')}
   else{const opt=bot.movetime?{movetime:Math.min(bot.movetime,g.tc?Math.max(200,g.clocks[g.chess.turn()]/30):bot.movetime),skill:20}:{depth:bot.depth,skill:bot.skill};const r=await eng().go(fen,opt);mv=r&&r.best}
   if(this.g!==g||g.over||g.chess.fen()!==fen)return;
+  while(g.paused&&this.g===g&&!g.over)await new Promise(r=>setTimeout(r,200));
   const wait=Math.max(0,(g.tc&&g.tc.base<=180000?250:550)-(performance.now()-t0));await new Promise(r=>setTimeout(r,wait));
   if(this.g!==g||g.over||g.chess.fen()!==fen)return;
   if(!mv){const ms=g.chess.moves({verbose:true});if(!ms.length)return;mv=ms[0].from+ms[0].to}
@@ -509,7 +517,7 @@ const Play={
   else if(c.isStalemate())r={res:'½-½',text:'Ничья — пат'};else if(c.isInsufficientMaterial())r={res:'½-½',text:'Ничья — недостаточно материала'};
   else if(c.isThreefoldRepetition())r={res:'½-½',text:'Ничья — троекратное повторение'};else if(c.isDraw())r={res:'½-½',text:'Ничья — правило 50 ходов'};
   if(r)this.finish(r)},
- finish(r){const g=this.g;g.over=r;this.stopTimer();this.save();try{const h=history_();h.unshift({d:Date.now(),mode:g.mode,bot:g.mode==='bot'?g.bot:null,col:g.user,res:g.mode==='local'?'draw2':(r.win===g.user?'win':r.win?'loss':'draw'),text:r.text,pgn:g.chess.pgn(),n:Math.ceil(g.chess.history().length/2),tc:g.tc?(g.tc.base/60000)+'+'+(g.tc.inc/1000):null});store.set('history',h.slice(0,100))}catch(e){}if(cur!==this)return;board.interactive=false;beep('end');this.renderButtons();this.renderMoves();this.renderPlayers();
+ finish(r){const g=this.g;g.over=r;g.paused=false;$('#pauseov').classList.remove('on');this.stopTimer();this.save();try{const h=history_();h.unshift({d:Date.now(),mode:g.mode,bot:g.mode==='bot'?g.bot:null,col:g.user,res:g.mode==='local'?'draw2':(r.win===g.user?'win':r.win?'loss':'draw'),text:r.text,pgn:g.chess.pgn(),n:Math.ceil(g.chess.history().length/2),tc:g.tc?(g.tc.base/60000)+'+'+(g.tc.inc/1000):null});store.set('history',h.slice(0,100))}catch(e){}if(cur!==this)return;board.interactive=false;beep('end');this.renderButtons();this.renderMoves();this.renderPlayers();
   const P=this.players();let title,lose=false;
   if(g.mode==='bot'){if(r.win===g.user){title='Вы победили!'}else if(r.win){title='Вы проиграли';lose=true}else title='Ничья'}else title=r.win?(r.win==='w'?'Белые':'Чёрные')+' победили':'Ничья';
   modal(`<div class="top ${lose?'lose':''}"><h2>${title}</h2><p>${esc(r.text)}</p></div><div class="body"><button class="big" style="margin:0 0 6px" id="mRev">Разбор партии</button><div style="display:flex;gap:8px"><button class="btn" id="mRe">Реванш</button><button class="btn" id="mNew">Новая партия</button></div><button class="btn" data-close>Закрыть</button></div>`);
@@ -524,13 +532,16 @@ const Play={
  confirmResign(){modal(`<div class="top lose"><h2>Сдаться?</h2><p>Партия будет засчитана как поражение.</p></div><div class="body"><button class="big" style="margin:0;background:#FF3B30;box-shadow:none" id="mYes">Сдаться</button><button class="btn" data-close>Продолжить игру</button></div>`);
   $('#mYes').onclick=()=>{const g=this.g;const loser=g.mode==='local'?g.chess.turn():g.user;const w=loser==='w'?'b':'w';closeModal();this.finish({res:w==='w'?'1-0':'0-1',win:w,text:(loser==='w'?'Белые':'Чёрные')+' сдались'})}},
  startTimer(){this.stopTimer();const g=this.g;if(!g||!g.tc||g.over)return;this.lastTick=performance.now();
-  this.timer=setInterval(()=>{const now=performance.now(),dt=now-this.lastTick;this.lastTick=now;if(!g.started||g.over||this.g!==g)return;const t=g.chess.turn();g.clocks[t]-=dt;
+  this.timer=setInterval(()=>{const now=performance.now(),dt=now-this.lastTick;this.lastTick=now;if(!g.started||g.over||this.g!==g||g.paused)return;const t=g.chess.turn();g.clocks[t]-=dt;
    const el=$('#clk'+t);if(el){el.textContent=fmtClock(g.clocks[t]);el.classList.toggle('low',g.clocks[t]<20000)}
    if(g.clocks[t]<=0){g.clocks[t]=0;const w=t==='w'?'b':'w';const ch=new Chess(g.chess.fen());const onlyK=!ch.board().flat().some(p=>p&&p.color===w&&p.type!=='k');eng().stop();
     this.finish(onlyK?{res:'½-½',text:'Время вышло — ничья (нет материала для мата)'}:{res:w==='w'?'1-0':'0-1',win:w,text:(t==='w'?'У белых':'У чёрных')+' закончилось время'})}
    if(Math.floor(now/2000)!==Math.floor((now-dt)/2000))this.save()},100)},
  stopTimer(){clearInterval(this.timer);this.timer=null},
- leave(){this.stopTimer();board.interactive=true}
+ pause(){const g=this.g;if(!g||g.over||g.paused)return;g.paused=true;this.syncPause();this.renderPlayers();this.save()},
+ resume(){const g=this.g;if(!g||!g.paused)return;g.paused=false;this.lastTick=performance.now();this.syncPause();this.renderPlayers();this.save()},
+ syncPause(){const g=this.g;const on=!!(g&&g.paused&&!g.over&&cur===this);$('#pauseov').classList.toggle('on',on);if(g&&!g.over&&g.view<0)board.interactive=!g.paused;const b=$('#bPause');if(b)b.style.display=g&&g.over?'none':''},
+ leave(){this.stopTimer();$('#pauseov').classList.remove('on');board.interactive=true}
 };
 
 /* ================= ЗАДАЧИ ================= */
@@ -728,6 +739,8 @@ function go(v){if(!VIEWS[v])v='play';if(curView&&VIEWS[curView].leave)VIEWS[curV
 const mob=document.querySelector('.mobnav');document.querySelectorAll('nav.side .nb').forEach(b=>mob.appendChild(b.cloneNode(true)));
 document.addEventListener('click',e=>{const b=e.target.closest('.nb');if(b)go(b.dataset.v)});
 document.addEventListener('keydown',e=>{if(e.target.closest('input,textarea,select'))return;if(curView==='analysis'){if(e.key==='ArrowLeft'){Analysis.go(Analysis.i-1);e.preventDefault()}if(e.key==='ArrowRight'){Analysis.go(Analysis.i+1);e.preventDefault()}}else if(curView==='play'&&Play.g){if(e.key==='ArrowLeft'){Play.nav('prev');e.preventDefault()}if(e.key==='ArrowRight'){Play.nav('next');e.preventDefault()}}});
+$('#resumeBtn').onclick=()=>Play.resume();
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&cur===Play&&Play.g&&!Play.g.over&&Play.g.tc&&Play.g.started)Play.pause()});
 window.addEventListener('hashchange',()=>{const v=location.hash.slice(1);if(v&&v!==curView&&VIEWS[v])go(v)});
 go((location.hash.slice(1))||'home');if(!profile)showLogin(false);
 }
